@@ -270,28 +270,25 @@ cmp_package_and_xml_node(cr_Package *pkg, xmlNodePtr node)
     current = current->next;
     g_assert_cmpstr(current->name, ==, "time");
     g_assert_cmpstr(current->properties->name, ==, "file");
-    gchar *tmp = g_strdup_printf("%i", pkg->time_file);
+    gchar tmp[50];
+    sprintf(tmp, "%i", pkg->time_file);
     g_assert_cmpstr(current->properties->children->content, ==, tmp);
-    g_free(tmp);
     g_assert_cmpstr(current->properties->next->name, ==, "build");
-    tmp = g_strdup_printf("%i", pkg->time_build);
+    sprintf(tmp, "%i", pkg->time_build);
     g_assert_cmpstr(current->properties->next->children->content, ==, tmp);
-    g_free(tmp);
 
     current = current->next;
     g_assert_cmpstr(current->name, ==, "size");
     g_assert_cmpstr(current->properties->name, ==, "package");
-    tmp = g_strdup_printf("%i", pkg->size_package);
+    sprintf(tmp, "%i", pkg->size_package);
     g_assert_cmpstr(current->properties->children->content, ==, tmp);
-    g_free(tmp);
     g_assert_cmpstr(current->properties->next->name, ==, "installed");
-    tmp = g_strdup_printf("%i", pkg->size_installed);
+    g_assert_cmpstr(current->properties->children->content, ==, tmp);
+    sprintf(tmp, "%i", pkg->size_installed);
     g_assert_cmpstr(current->properties->next->children->content, ==, tmp);
-    g_free(tmp);
     g_assert_cmpstr(current->properties->next->next->name, ==, "archive");
-    tmp = g_strdup_printf("%i", pkg->size_archive);
+    sprintf(tmp, "%i", pkg->size_archive);
     g_assert_cmpstr(current->properties->next->next->children->content, ==, tmp);
-    g_free(tmp);
 
     current = current->next;
     g_assert_cmpstr(current->name, ==, "location");
@@ -331,13 +328,11 @@ cmp_package_and_xml_node(cr_Package *pkg, xmlNodePtr node)
     current = current->next;
     g_assert_cmpstr(current->name, ==, "rpm:header-range");
     g_assert_cmpstr(current->properties->name, ==, "start");
-    tmp = g_strdup_printf("%i", pkg->rpm_header_start);
+    sprintf(tmp, "%i", pkg->rpm_header_start);
     g_assert_cmpstr(current->properties->children->content, ==, tmp);
-    g_free(tmp);
     g_assert_cmpstr(current->properties->next->name, ==, "end");
-    tmp = g_strdup_printf("%i", pkg->rpm_header_end);
+    sprintf(tmp, "%i", pkg->rpm_header_end);
     g_assert_cmpstr(current->properties->next->children->content, ==, tmp);
-    g_free(tmp);
 
     current = current->next;
 
