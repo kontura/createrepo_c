@@ -40,6 +40,7 @@
 #include "modifyrepo_shared.h"
 #include "threads.h"
 #include "xml_dump.h"
+#include "compression_wrapper_internal.h"
 
 
 #define DEFAULT_CHECKSUM    CR_CHECKSUM_SHA256
@@ -160,6 +161,10 @@ check_arguments(SqliterepoCmdOptions *options, GError **err)
     if (options->compress_type) {
         options->compression_type = cr_compression_type(options->compress_type);
         if (!g_strcmp0(options->compression_type, CR_CW_UNKNOWN_COMPRESSION)) {
+            options->compression_type = options->compress_type;
+        }
+
+        if (!cr_valid_compression(options->compression_type)) {
             g_set_error(err, CREATEREPO_C_ERROR, CRE_ERROR,
                         "Unknown compression type \"%s\"", options->compress_type);
             return FALSE;

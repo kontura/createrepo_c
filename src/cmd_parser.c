@@ -28,6 +28,7 @@
 #include "compression_wrapper.h"
 #include "misc.h"
 #include "cleanup.h"
+#include "compression_wrapper_internal.h"
 
 
 #define ERR_DOMAIN                      CREATEREPO_C_ERROR
@@ -270,16 +271,14 @@ check_and_set_compression_type(const char *type_str,
 {
     assert(!err || *err == NULL);
 
-    _cleanup_string_free_ GString *compress_str = NULL;
-    compress_str = g_string_ascii_down(g_string_new(type_str));
+    // Convert old config strings to legacy compression type CR_CW_*
+    // We should remove this once we fully switch to rpmio
+    *type = cr_compression_type(type_str);
+    if (!g_strcmp0(*type, CR_CW_UNKNOWN_COMPRESSION)) {
+        *type = type_str;
+    }
 
-    if (!strcmp(compress_str->str, "gz")) {
-        *type = CR_CW_GZ_COMPRESSION;
-    } else if (!strcmp(compress_str->str, "bz2")) {
-        *type = CR_CW_BZ2_COMPRESSION;
-    } else if (!strcmp(compress_str->str, "xz")) {
-        *type = CR_CW_XZ_COMPRESSION;
-    } else {
+    if (!cr_valid_compression(*type)) {
         g_set_error(err, ERR_DOMAIN, CRE_BADARG,
                     "Unknown/Unsupported compression type \"%s\"", type_str);
         return FALSE;

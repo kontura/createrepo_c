@@ -44,6 +44,7 @@
 #include "xml_file.h"
 #include "cleanup.h"
 #include "koji.h"
+#include "compression_wrapper_internal.h"
 
 #define DEFAULT_OUTPUTDIR               "merged_repo/"
 
@@ -277,7 +278,11 @@ check_arguments(struct CmdOptions *options)
         cr_CompressionType type;
         type = cr_compression_type(options->compress_type);
 
-        if (type == CR_CW_UNKNOWN_COMPRESSION) {
+        if (!g_strcmp0(type, CR_CW_UNKNOWN_COMPRESSION)) {
+            type = options->compress_type;
+        }
+
+        if (!cr_valid_compression(type)) {
             g_critical("Compression %s not available: Please choose from: "
                        "gz or bz2 or xz", options->compress_type);
             ret = FALSE;

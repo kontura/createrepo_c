@@ -37,6 +37,7 @@
 #include "sqlite.h"
 #include "xml_file.h"
 #include "modifyrepo_shared.h"
+#include "compression_wrapper_internal.h"
 
 #define ERR_DOMAIN      CREATEREPO_C_ERROR
 
@@ -144,12 +145,18 @@ check_arguments(RawCmdOptions *options, GError **err)
     }
 
     // --compress-type
-    if (options->compress_type
-        && !g_strcmp0(cr_compression_type(options->compress_type), CR_CW_UNKNOWN_COMPRESSION))
-    {
-        g_set_error(err, ERR_DOMAIN, CRE_ERROR,
-                    "Unknown compression type \"%s\"", options->compress_type);
-        return FALSE;
+    if (options->compress_type) {
+        cr_CompressionType type = cr_compression_type(options->compress_type);
+        if (g_strcmp0(type, CR_CW_UNKNOWN_COMPRESSION)) {
+            g_free(options->compress_type);
+            options->compress_type = g_strdup(type);
+        }
+
+        if (!cr_valid_compression(options->compress_type)) {
+            g_set_error(err, ERR_DOMAIN, CRE_ERROR,
+                        "Unknown compression type \"%s\"", options->compress_type);
+            return FALSE;
+        }
     }
 
     // -s/--checksum
@@ -230,7 +237,11 @@ cmd_options_to_task(GSList **modifyrepotasks,
     task->type = cr_safe_string_chunk_insert_null(task->chunk, options->mdtype);
     task->remove = (options->remove) ? TRUE : FALSE;
     task->compress = options->compress;
-    task->compress_type = cr_compression_type(options->compress_type);
+    if (options->compress_type) {
+        task->compress_type = options->compress_type;
+    } else {
+        task->compress_type = CR_CW_UNKNOWN_COMPRESSION;
+    }
     task->unique_md_filenames = options->unique_md_filenames;
     task->checksum_type = cr_checksum_type(options->checksum);
     task->new_name = cr_safe_string_chunk_insert_null(task->chunk,

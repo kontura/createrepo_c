@@ -30,12 +30,14 @@
 #include <zlib.h>
 #include <bzlib.h>
 #include <lzma.h>
+#include <rpm/rpmio.h>
 #ifdef WITH_ZCHUNK
 #include <zck.h>
 #endif  // WITH_ZCHUNK
 #include "error.h"
 #include "compression_wrapper.h"
 #include "compression_wrapper_internal.h"
+#include "cleanup.h"
 
 
 #define ERR_DOMAIN                      CREATEREPO_C_ERROR
@@ -282,22 +284,48 @@ cr_valid_compression(cr_CompressionType type)
         return TRUE;
        }
 
+    _cleanup_string_free_ GString *compress_str = NULL;
+    compress_str = g_string_ascii_down(g_string_new(type));
+    // These suffixes match what rpmio can recongnize (rpmio.c)
+    if (g_str_has_suffix(compress_str->str, "gzdio" ) ||
+        g_str_has_suffix(compress_str->str, "gzip"  ) ||
+        g_str_has_suffix(compress_str->str, "bzdio" ) ||
+        g_str_has_suffix(compress_str->str, "bzip2" ) ||
+        g_str_has_suffix(compress_str->str, "xzdio" ) ||
+        g_str_has_suffix(compress_str->str, "xz"    ) ||
+        g_str_has_suffix(compress_str->str, "zstdio") ||
+        g_str_has_suffix(compress_str->str, "zstd"  )) {
+
+        return TRUE;
+    }
+
     return FALSE;
 }
 
 const char *
 cr_compression_suffix(cr_CompressionType comtype)
 {
-    if (!g_strcmp0(comtype, CR_CW_GZ_COMPRESSION))
+    if (!g_strcmp0(comtype, CR_CW_GZ_COMPRESSION) ||
+        g_str_has_suffix(comtype, "gzdio") ||
+        g_str_has_suffix(comtype, "gzip"))
         return ".gz";
-    else if (!g_strcmp0(comtype, CR_CW_BZ2_COMPRESSION))
+
+    if (!g_strcmp0(comtype, CR_CW_BZ2_COMPRESSION) ||
+        g_str_has_suffix(comtype, "bzdio") ||
+        g_str_has_suffix(comtype, "bzip2"))
         return ".bz2";
-    else if (!g_strcmp0(comtype, CR_CW_XZ_COMPRESSION))
+
+    if (!g_strcmp0(comtype, CR_CW_XZ_COMPRESSION) ||
+        g_str_has_suffix(comtype, "xzdio") ||
+        g_str_has_suffix(comtype, "xz"))
         return ".xz";
-    else if (!g_strcmp0(comtype, CR_CW_ZCK_COMPRESSION))
+
+    if (!g_strcmp0(comtype, CR_CW_ZCK_COMPRESSION) ||
+        g_str_has_suffix(comtype, "zckdio") ||
+        g_str_has_suffix(comtype, "zck"))
         return ".zck";
-    else
-        return NULL;
+
+    return NULL;
 }
 
 
@@ -630,7 +658,23 @@ cr_sopen(const char *filename,
 #else
                 g_set_error(err, ERR_DOMAIN, CRE_IO, "createrepo_c wasn't compiled with zchunk support");
 #endif // WITH_ZCHUNK
+        } else {
+            gchar * rpmio_mode_str;
+            //TODO(amatej): Does the rpmio mode have some official format?
+            if (g_strrstr(type, ".")) {
+                rpmio_mode_str = (mode == CR_CW_MODE_WRITE) ? g_strconcat("wb", type, NULL) : g_strconcat("rb", type, NULL);
+            } else {
+                rpmio_mode_str = (mode == CR_CW_MODE_WRITE) ? g_strconcat("wb.", type, NULL) : g_strconcat("rb.", type, NULL);
+            }
+
+            file->FILE = (void *) Fopen(filename, rpmio_mode_str);
+            if (!file->FILE) {
+                g_set_error(err, ERR_DOMAIN, CRE_RPMIO, "rpmio Fopen of %s with mode %s: %s",
+                            filename, rpmio_mode_str, Fstrerror((FD_t) file->FILE));
+            }
+            g_free(rpmio_mode_str);
         }
+
     }
 
     if (!file->FILE) {
@@ -902,6 +946,14 @@ cr_close(CR_FILE *cr_file, GError **err)
 #else
                 g_set_error(err, ERR_DOMAIN, CRE_IO, "createrepo_c wasn't compiled with zchunk support");
 #endif // WITH_ZCHUNK
+        } else {
+            if (Fclose((FD_t) cr_file->FILE) == 0) {
+                ret = CRE_OK;
+            } else {
+                ret = CRE_IO;
+                g_set_error(err, ERR_DOMAIN, CRE_RPMIO, "rpmio Fclose of %s: %s",
+                            Fdescr((FD_t) cr_file->FILE), Fstrerror((FD_t) cr_file->FILE));
+            }
         }
     }
 
@@ -1110,9 +1162,12 @@ cr_read(CR_FILE *cr_file, void *buffer, unsigned int len, GError **err)
 #endif // WITH_ZCHUNK
 
         } else {
-            ret = CR_CW_ERR;
-            g_set_error(err, ERR_DOMAIN, CRE_BADARG,
-                        "Bad compressed file type");
+            ret = Fread(buffer, sizeof(*buffer), len, (FD_t) cr_file->FILE);
+            if (ret < 0) {
+                ret = CR_CW_ERR;
+                g_set_error(err, ERR_DOMAIN, CRE_RPMIO, "rpmio Fread of %s: %s",
+                        Fdescr((FD_t) cr_file->FILE), Fstrerror((FD_t) cr_file->FILE));
+            }
         }
     }
 
@@ -1283,6 +1338,16 @@ cr_write(CR_FILE *cr_file, const void *buffer, unsigned int len, GError **err)
             g_set_error(err, ERR_DOMAIN, CRE_IO, "createrepo_c wasn't compiled with zchunk support");
 #endif // WITH_ZCHUNK
 
+        } else {
+            if (len == 0) {
+                ret = 0;
+            } else {
+                if ((ret = Fwrite(buffer, 1, len, (FD_t) cr_file->FILE)) != (int) len) {
+                    ret = CR_CW_ERR;
+                    g_set_error(err, ERR_DOMAIN, CRE_RPMIO, "rpmio Fwrite to %s: %s",
+                            Fdescr((FD_t) cr_file->FILE), Fstrerror((FD_t) cr_file->FILE));
+                }
+            }
         }
     }
 

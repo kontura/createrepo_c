@@ -98,6 +98,8 @@ typedef enum {
         (34) ZCK library related error */
     CRE_MODULEMD, /*!<
         (35) modulemd related error */
+    CRE_RPMIO, /*!<
+        (36) rpmio library related error */
     CRE_SENTINEL, /*!<
         (XX) Sentinel */
 } cr_Error;
