@@ -106,34 +106,34 @@ test_cr_compression_type(void)
     cr_CompressionType type;
 
     type = cr_compression_type(NULL);
-    g_assert_cmpint(type, ==, CR_CW_UNKNOWN_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_UNKNOWN_COMPRESSION);
 
     type = cr_compression_type("");
-    g_assert_cmpint(type, ==, CR_CW_UNKNOWN_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_UNKNOWN_COMPRESSION);
 
     type = cr_compression_type("foo");
-    g_assert_cmpint(type, ==, CR_CW_UNKNOWN_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_UNKNOWN_COMPRESSION);
 
     type = cr_compression_type("gz");
-    g_assert_cmpint(type, ==, CR_CW_GZ_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_GZ_COMPRESSION);
 
     type = cr_compression_type("gzip");
-    g_assert_cmpint(type, ==, CR_CW_GZ_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_GZ_COMPRESSION);
 
     type = cr_compression_type("GZ");
-    g_assert_cmpint(type, ==, CR_CW_GZ_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_GZ_COMPRESSION);
 
     type = cr_compression_type("Gz");
-    g_assert_cmpint(type, ==, CR_CW_GZ_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_GZ_COMPRESSION);
 
     type = cr_compression_type("bz2");
-    g_assert_cmpint(type, ==, CR_CW_BZ2_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_BZ2_COMPRESSION);
 
     type = cr_compression_type("bzip2");
-    g_assert_cmpint(type, ==, CR_CW_BZ2_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_BZ2_COMPRESSION);
 
     type = cr_compression_type("xz");
-    g_assert_cmpint(type, ==, CR_CW_XZ_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_XZ_COMPRESSION);
 }
 
 static void
@@ -145,37 +145,37 @@ test_cr_detect_compression(void)
     // Plain
 
     ret = cr_detect_compression(FILE_COMPRESSED_0_PLAIN, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_NO_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_NO_COMPRESSION);
     g_assert(!tmp_err);
     ret = cr_detect_compression(FILE_COMPRESSED_1_PLAIN, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_NO_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_NO_COMPRESSION);
     g_assert(!tmp_err);
 
     // Gz
 
     ret = cr_detect_compression(FILE_COMPRESSED_0_GZ, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_GZ_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_GZ_COMPRESSION);
     g_assert(!tmp_err);
     ret = cr_detect_compression(FILE_COMPRESSED_1_GZ, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_GZ_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_GZ_COMPRESSION);
     g_assert(!tmp_err);
 
     // Bz2
 
     ret = cr_detect_compression(FILE_COMPRESSED_0_BZ2, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_BZ2_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_BZ2_COMPRESSION);
     g_assert(!tmp_err);
     ret = cr_detect_compression(FILE_COMPRESSED_1_BZ2, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_BZ2_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_BZ2_COMPRESSION);
     g_assert(!tmp_err);
 
     // Xz
 
     ret = cr_detect_compression(FILE_COMPRESSED_0_XZ, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_XZ_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_XZ_COMPRESSION);
     g_assert(!tmp_err);
     ret = cr_detect_compression(FILE_COMPRESSED_1_XZ, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_XZ_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_XZ_COMPRESSION);
     g_assert(!tmp_err);
 }
 
@@ -189,37 +189,37 @@ test_cr_detect_compression_bad_suffix(void)
     // Plain
 
     ret = cr_detect_compression(FILE_COMPRESSED_0_PLAIN_BAD_SUFFIX, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_NO_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_NO_COMPRESSION);
     g_assert(!tmp_err);
     ret = cr_detect_compression(FILE_COMPRESSED_1_PLAIN_BAD_SUFFIX, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_NO_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_NO_COMPRESSION);
     g_assert(!tmp_err);
 
     // Gz
 
     ret = cr_detect_compression(FILE_COMPRESSED_0_GZ_BAD_SUFFIX, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_GZ_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_GZ_COMPRESSION);
     g_assert(!tmp_err);
     ret = cr_detect_compression(FILE_COMPRESSED_1_GZ_BAD_SUFFIX, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_GZ_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_GZ_COMPRESSION);
     g_assert(!tmp_err);
 
     // Bz2
 
     ret = cr_detect_compression(FILE_COMPRESSED_0_BZ2_BAD_SUFFIX, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_BZ2_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_BZ2_COMPRESSION);
     g_assert(!tmp_err);
     ret = cr_detect_compression(FILE_COMPRESSED_1_BZ2_BAD_SUFFIX, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_BZ2_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_BZ2_COMPRESSION);
     g_assert(!tmp_err);
 
     // Xz
 
     ret = cr_detect_compression(FILE_COMPRESSED_0_XZ_BAD_SUFFIX, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_XZ_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_XZ_COMPRESSION);
     g_assert(!tmp_err);
     ret = cr_detect_compression(FILE_COMPRESSED_1_XZ_BAD_SUFFIX, &tmp_err);
-    g_assert_cmpint(ret, ==, CR_CW_XZ_COMPRESSION);
+    g_assert_cmpstr(ret, ==, CR_CW_XZ_COMPRESSION);
     g_assert(!tmp_err);
 }
 
@@ -458,14 +458,14 @@ test_cr_error_handling(void)
     CR_FILE *f;
 
     type = cr_detect_compression("/filename/that/should/not/exists", &tmp_err);
-    g_assert_cmpint(type, ==, CR_CW_UNKNOWN_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_UNKNOWN_COMPRESSION);
     g_assert(tmp_err);
     g_assert_cmpint(tmp_err->code, ==, CRE_NOFILE);
     g_error_free(tmp_err);
     tmp_err = NULL;
 
     type = cr_detect_compression("/", &tmp_err);
-    g_assert_cmpint(type, ==, CR_CW_UNKNOWN_COMPRESSION);
+    g_assert_cmpstr(type, ==, CR_CW_UNKNOWN_COMPRESSION);
     g_assert(tmp_err);
     g_assert_cmpint(tmp_err->code, ==, CRE_NOFILE);
     g_error_free(tmp_err);

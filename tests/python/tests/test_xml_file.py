@@ -63,7 +63,7 @@ class TestCaseXmlFile(unittest.TestCase):
 
         # Bad compression type
         self.assertRaises(ValueError, cr.XmlFile, path,
-                          cr.XMLFILE_PRIMARY, 678, None)
+                          cr.XMLFILE_PRIMARY, "678", None)
         self.assertFalse(os.path.exists(path))
 
         # Bad contentstat object

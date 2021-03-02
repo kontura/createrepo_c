@@ -159,7 +159,7 @@ check_arguments(SqliterepoCmdOptions *options, GError **err)
     // --compress-type
     if (options->compress_type) {
         options->compression_type = cr_compression_type(options->compress_type);
-        if (options->compression_type == CR_CW_UNKNOWN_COMPRESSION) {
+        if (!g_strcmp0(options->compression_type, CR_CW_UNKNOWN_COMPRESSION)) {
             g_set_error(err, CREATEREPO_C_ERROR, CRE_ERROR,
                         "Unknown compression type \"%s\"", options->compress_type);
             return FALSE;

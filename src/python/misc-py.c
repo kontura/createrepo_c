@@ -31,13 +31,13 @@
 PyObject *
 py_compress_file_with_stat(G_GNUC_UNUSED PyObject *self, PyObject *args)
 {
-    int type;
+    char *type;
     char *src, *dst;
     PyObject *py_contentstat = NULL;
     cr_ContentStat *contentstat;
     GError *tmp_err = NULL;
 
-    if (!PyArg_ParseTuple(args, "sziO:py_compress_file", &src, &dst, &type,
+    if (!PyArg_ParseTuple(args, "szsO:py_compress_file", &src, &dst, &type,
                           &py_contentstat))
         return NULL;
 
@@ -61,13 +61,13 @@ py_compress_file_with_stat(G_GNUC_UNUSED PyObject *self, PyObject *args)
 PyObject *
 py_decompress_file_with_stat(G_GNUC_UNUSED PyObject *self, PyObject *args)
 {
-    int type;
+    char *type;
     char *src, *dst;
     PyObject *py_contentstat = NULL;
     cr_ContentStat *contentstat;
     GError *tmp_err = NULL;
 
-    if (!PyArg_ParseTuple(args, "sziO:py_decompress_file", &src, &dst, &type,
+    if (!PyArg_ParseTuple(args, "szsO:py_decompress_file", &src, &dst, &type,
                           &py_contentstat))
         return NULL;
 

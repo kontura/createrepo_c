@@ -42,7 +42,7 @@ cr_compressiontask_new(const char *src,
     cr_CompressionTask *task;
 
     assert(src);
-    assert(compression_type < CR_CW_COMPRESSION_SENTINEL);
+    assert(compression_type);
     assert(checksum_type < CR_CHECKSUM_SENTINEL);
     assert(!err || *err == NULL);
 

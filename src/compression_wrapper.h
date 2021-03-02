@@ -34,16 +34,17 @@ extern "C" {
 
 /** Compression type.
  */
-typedef enum {
-    CR_CW_AUTO_DETECT_COMPRESSION,    /*!< Autodetection */
-    CR_CW_UNKNOWN_COMPRESSION,        /*!< Unknown compression */
-    CR_CW_NO_COMPRESSION,             /*!< No compression */
-    CR_CW_GZ_COMPRESSION,             /*!< Gzip compression */
-    CR_CW_BZ2_COMPRESSION,            /*!< BZip2 compression */
-    CR_CW_XZ_COMPRESSION,             /*!< XZ compression */
-    CR_CW_ZCK_COMPRESSION,            /*!< ZCK compression */
-    CR_CW_COMPRESSION_SENTINEL,       /*!< Sentinel of the list */
-} cr_CompressionType;
+typedef const char* cr_CompressionType;
+
+/** Compatibility macros for old compression approach
+ */
+#define CR_CW_AUTO_DETECT_COMPRESSION   "CR_CW_AUTO_DETECT_COMPRESSION" /*!< Autodetection */
+#define CR_CW_UNKNOWN_COMPRESSION       "CR_CW_UNKNOWN_COMPRESSION"     /*!< Unknown compression */
+#define CR_CW_NO_COMPRESSION            "CR_CW_NO_COMPRESSION"          /*!< No compression */
+#define CR_CW_GZ_COMPRESSION            "CR_CW_GZ_COMPRESSION"          /*!< Gzip compression */
+#define CR_CW_BZ2_COMPRESSION           "CR_CW_BZ2_COMPRESSION"         /*!< BZip2 compression */
+#define CR_CW_XZ_COMPRESSION            "CR_CW_XZ_COMPRESSION"          /*!< XZ compression */
+#define CR_CW_ZCK_COMPRESSION           "CR_CW_ZCK_COMPRESSION"         /*!< ZCK compression */
 
 /** Open modes.
  */

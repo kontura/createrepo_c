@@ -45,7 +45,7 @@ class TestCaseCrFile(unittest.TestCase):
 
         # Bad compression type
         self.assertRaises(ValueError, cr.CrFile, path,
-                          cr.MODE_READ, 678, None)
+                          cr.MODE_READ, "infititeCompression2", None)
         self.assertFalse(os.path.exists(path))
 
         # Bad contentstat object

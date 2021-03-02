@@ -486,7 +486,7 @@ cr_compress_file_with_stat(const char *src,
         if (tmp_err) {
             g_debug("%s: Unable to detect compression type of %s, using the filename as is.", __func__, dst);
             g_clear_error(&tmp_err);
-        } else if (old_type == CR_CW_NO_COMPRESSION) {
+        } else if (!g_strcmp0(old_type, CR_CW_NO_COMPRESSION)) {
             dst = g_strconcat(dst, c_suffix, NULL);
         } else {
             _cleanup_free_ gchar *tmp_file = g_strndup(dst, strlen(dst) - strlen(cr_compression_suffix(old_type)));
@@ -494,11 +494,9 @@ cr_compress_file_with_stat(const char *src,
         }
     }
 
-    int mode = CR_CW_AUTO_DETECT_COMPRESSION;
 
-    orig = cr_open(src,
-                   CR_CW_MODE_READ,
-                   mode,
+    orig = cr_open(src, CR_CW_MODE_READ,
+                   CR_CW_AUTO_DETECT_COMPRESSION,
                    &tmp_err);
     if (!orig) {
         ret = tmp_err->code;
@@ -508,7 +506,7 @@ cr_compress_file_with_stat(const char *src,
 
     _cleanup_free_ gchar *dict = NULL;
     size_t dict_size = 0;
-    if (compression == CR_CW_ZCK_COMPRESSION && zck_dict_dir) {
+    if (!g_strcmp0(compression, CR_CW_ZCK_COMPRESSION) && zck_dict_dir) {
         /* Find zdict */
         _cleanup_free_ gchar *file_basename = NULL;
         if (dst) {
@@ -541,7 +539,7 @@ cr_compress_file_with_stat(const char *src,
         ret = CRE_IO;
         goto compress_file_cleanup;
     }
-    if (compression == CR_CW_ZCK_COMPRESSION) {
+    if (!g_strcmp0(compression, CR_CW_ZCK_COMPRESSION)) {
         if (dict && cr_set_dict(new, dict, dict_size, &tmp_err) != CRE_OK) {
             ret = tmp_err->code;
             g_propagate_prefixed_error(err, tmp_err, "Unable to set zdict for %s: ", dst);
@@ -603,13 +601,13 @@ cr_decompress_file_with_stat(const char *src,
         return CRE_NOFILE;
     }
 
-    if (compression == CR_CW_AUTO_DETECT_COMPRESSION ||
-        compression == CR_CW_UNKNOWN_COMPRESSION)
+    if (!g_strcmp0(compression, CR_CW_AUTO_DETECT_COMPRESSION) ||
+        !g_strcmp0(compression, CR_CW_UNKNOWN_COMPRESSION))
     {
         compression = cr_detect_compression(src, NULL);
     }
 
-    if (compression == CR_CW_UNKNOWN_COMPRESSION) {
+    if (!g_strcmp0(compression, CR_CW_UNKNOWN_COMPRESSION)) {
         g_set_error(err, ERR_DOMAIN, CRE_UNKNOWNCOMPRESSION,
                     "Cannot detect compression type");
         return CRE_UNKNOWNCOMPRESSION;

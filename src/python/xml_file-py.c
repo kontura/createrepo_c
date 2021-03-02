@@ -26,6 +26,7 @@
 #include "exception-py.h"
 #include "contentstat-py.h"
 #include "typeconversion.h"
+#include "src/compression_wrapper_internal.h"
 
 typedef struct {
     PyObject_HEAD
@@ -76,12 +77,13 @@ static int
 xmlfile_init(_XmlFileObject *self, PyObject *args, G_GNUC_UNUSED PyObject *kwds)
 {
     char *path;
-    int type, comtype;
+    int type;
+    char *comtype;
     GError *err = NULL;
     PyObject *py_stat, *ret;
     cr_ContentStat *stat;
 
-    if (!PyArg_ParseTuple(args, "siiO|:xmlfile_init",
+    if (!PyArg_ParseTuple(args, "sisO|:xmlfile_init",
                           &path, &type, &comtype, &py_stat))
         return -1;
 
@@ -91,7 +93,7 @@ xmlfile_init(_XmlFileObject *self, PyObject *args, G_GNUC_UNUSED PyObject *kwds)
         return -1;
     }
 
-    if (comtype < 0 || comtype >= CR_CW_COMPRESSION_SENTINEL) {
+    if (!cr_valid_compression(comtype)) {
         PyErr_SetString(PyExc_ValueError, "Unknown compression type");
         return -1;
     }

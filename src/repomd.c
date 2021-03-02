@@ -263,8 +263,8 @@ cr_repomd_record_fill(cr_RepomdRecord *md,
             return code;
         }
 
-        if (com_type != CR_CW_UNKNOWN_COMPRESSION &&
-            com_type != CR_CW_NO_COMPRESSION)
+        if (g_strcmp0(com_type, CR_CW_UNKNOWN_COMPRESSION) &&
+            g_strcmp0(com_type, CR_CW_NO_COMPRESSION))
         {
             // File compressed by supported algorithm
             cr_ContentStat *open_stat = NULL;
@@ -293,7 +293,7 @@ cr_repomd_record_fill(cr_RepomdRecord *md,
             g_free(open_stat->checksum);
             g_free(open_stat);
         } else {
-            if (com_type != CR_CW_NO_COMPRESSION) {
+            if (g_strcmp0(com_type, CR_CW_NO_COMPRESSION)) {
                 // Unknown compression
                 g_warning("%s: File \"%s\" compressed by an unsupported type"
                           " of compression", __func__, path);
@@ -400,8 +400,8 @@ cr_repomd_record_compress_and_fill(cr_RepomdRecord *record,
 
     // Compress file + get size of non compressed file
 
-    int mode = CR_CW_NO_COMPRESSION;
-    if (record_compression == CR_CW_ZCK_COMPRESSION)
+    const char *mode = CR_CW_NO_COMPRESSION;
+    if (!g_strcmp0(record_compression, CR_CW_ZCK_COMPRESSION))
         mode = CR_CW_AUTO_DETECT_COMPRESSION;
 
     cw_plain = cr_open(path,
@@ -416,7 +416,7 @@ cr_repomd_record_compress_and_fill(cr_RepomdRecord *record,
 
     _cleanup_free_ gchar *dict = NULL;
     size_t dict_size = 0;
-    if (record_compression == CR_CW_ZCK_COMPRESSION && zck_dict_dir) {
+    if (!g_strcmp0(record_compression, CR_CW_ZCK_COMPRESSION) && zck_dict_dir) {
         /* Find zdict */
         _cleanup_free_ gchar *file_basename = NULL;
         _cleanup_free_ gchar *dict_base = NULL;
@@ -447,7 +447,7 @@ cr_repomd_record_compress_and_fill(cr_RepomdRecord *record,
         return ret;
     }
 
-    if (record_compression == CR_CW_ZCK_COMPRESSION) {
+    if (!g_strcmp0(record_compression, CR_CW_ZCK_COMPRESSION)) {
         if (dict && cr_set_dict(cw_compressed, dict, dict_size, &tmp_err) != CRE_OK) {
             ret = tmp_err->code;
             g_propagate_prefixed_error(err, tmp_err, "Unable to set zdict for %s: ", cpath);

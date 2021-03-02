@@ -775,12 +775,12 @@ main(int argc, char **argv)
     cr_CompressionType sqlite_compression = CR_CW_BZ2_COMPRESSION;
     cr_CompressionType compression = CR_CW_GZ_COMPRESSION;
 
-    if (cmd_options->compression_type != CR_CW_UNKNOWN_COMPRESSION) {
+    if (g_strcmp0(cmd_options->compression_type, CR_CW_UNKNOWN_COMPRESSION)) {
         sqlite_compression = cmd_options->compression_type;
         compression        = cmd_options->compression_type;
     }
 
-    if (cmd_options->general_compression_type != CR_CW_UNKNOWN_COMPRESSION) {
+    if (g_strcmp0(cmd_options->general_compression_type, CR_CW_UNKNOWN_COMPRESSION)) {
         xml_compression    = cmd_options->general_compression_type;
         sqlite_compression = cmd_options->general_compression_type;
         compression        = cmd_options->general_compression_type;
@@ -1681,7 +1681,7 @@ main(int argc, char **argv)
             cr_CompressionType com_type = cr_detect_compression(((cr_Metadatum *) element->data)->name, &tmp_err);
             gchar *elem_type = g_strdup(((cr_Metadatum *) element->data)->type);
             gchar *elem_name = g_strdup(((cr_Metadatum *) element->data)->name);
-            if (com_type != CR_CW_NO_COMPRESSION){
+            if (g_strcmp0(com_type, CR_CW_NO_COMPRESSION)){
                 const gchar *compression_suffix = cr_compression_suffix(com_type);
                 //remove suffixes if present
                 if (g_str_has_suffix(elem_name, compression_suffix)){
@@ -1710,7 +1710,7 @@ main(int argc, char **argv)
             }
             /* Only create additional_metadata_zck if additional_metadata isn't already zchunk 
              * and its zck version doesn't yet exists */
-            if (com_type != CR_CW_ZCK_COMPRESSION && 
+            if (g_strcmp0(com_type, CR_CW_ZCK_COMPRESSION) &&
                 !g_slist_find_custom(additional_metadata_rec, additional_metadatum_rec_zck_type, cr_cmp_repomd_record_type)) {
                 GSList *additional_metadatum_rec_elem = g_slist_find_custom(additional_metadata_rec,
                                                                             ((cr_Metadatum *) element->data)->type,
@@ -1816,7 +1816,7 @@ main(int argc, char **argv)
             g_clear_error(&tmp_err);
             goto deltaerror;
         }
-        if (cmd_options->zck_compression && compression != CR_CW_ZCK_COMPRESSION) {
+        if (cmd_options->zck_compression && g_strcmp0(compression, CR_CW_ZCK_COMPRESSION)) {
             filename = g_strconcat("prestodelta.xml",
                                    cr_compression_suffix(CR_CW_ZCK_COMPRESSION),
                                    NULL);

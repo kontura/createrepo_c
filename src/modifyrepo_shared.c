@@ -54,7 +54,7 @@ gchar *
 cr_remove_compression_suffix_if_present(gchar* name, GError **err)
 {
     cr_CompressionType src_fn_com_type = cr_detect_compression(name, err);
-    if (src_fn_com_type != CR_CW_NO_COMPRESSION && src_fn_com_type != CR_CW_UNKNOWN_COMPRESSION){
+    if (g_strcmp0(src_fn_com_type, CR_CW_NO_COMPRESSION) && g_strcmp0(src_fn_com_type, CR_CW_UNKNOWN_COMPRESSION)){
         const gchar *src_suffix = cr_compression_suffix(src_fn_com_type);
         if (src_suffix){
             if (g_str_has_suffix(name, src_suffix)){
@@ -195,7 +195,7 @@ cr_modifyrepo(GSList *modifyrepotasks, gchar *repopath, GError **err)
         if (task->remove)
             continue;
 
-        if (task->compress && task->compress_type == CR_CW_UNKNOWN_COMPRESSION)
+        if (task->compress && !g_strcmp0(task->compress_type, CR_CW_UNKNOWN_COMPRESSION))
             // If compression enabled but type not specified, use default
             task->compress_type = DEFAULT_COMPRESSION;
 
@@ -519,7 +519,7 @@ cr_modifyrepo_parse_batchfile(const gchar *path,
                     g_key_file_get_string(keyfile, group, "new-name", NULL));
 
         g_debug("Task: [path: %s, type: %s, remove: %d, compress: %d, "
-                "compress_type: %d (%s), unique_md_filenames: %d, "
+                "compress_type: %s (%s), unique_md_filenames: %d, "
                 "checksum_type: %d (%s), new_name: %s]",
                 task->path, task->type, task->remove, task->compress,
                 task->compress_type, cr_compression_suffix(task->compress_type),

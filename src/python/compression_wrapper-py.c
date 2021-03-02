@@ -26,6 +26,7 @@
 #include "exception-py.h"
 #include "contentstat-py.h"
 #include "typeconversion.h"
+#include "src/compression_wrapper_internal.h"
 
 /*
  * Module functions
@@ -34,9 +35,9 @@
 PyObject *
 py_compression_suffix(G_GNUC_UNUSED PyObject *self, PyObject *args)
 {
-    int type;
+    char *type;
 
-    if (!PyArg_ParseTuple(args, "i:py_compression_suffix", &type))
+    if (!PyArg_ParseTuple(args, "s:py_compression_suffix", &type))
         return NULL;
 
     return PyUnicodeOrNone_FromString(cr_compression_suffix(type));
@@ -45,7 +46,7 @@ py_compression_suffix(G_GNUC_UNUSED PyObject *self, PyObject *args)
 PyObject *
 py_detect_compression(G_GNUC_UNUSED PyObject *self, PyObject *args)
 {
-    long type;
+    const char *type;
     char *filename;
     GError *tmp_err = NULL;
 
@@ -58,7 +59,7 @@ py_detect_compression(G_GNUC_UNUSED PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyLong_FromLong(type);
+    return PyUnicodeOrNone_FromString(type);
 }
 
 PyObject *
@@ -69,7 +70,7 @@ py_compression_type(G_GNUC_UNUSED PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "z:py_compression_type", &name))
         return NULL;
 
-    return PyLong_FromLong((long) cr_compression_type(name));
+    return PyUnicodeOrNone_FromString(cr_compression_type(name));
 }
 
 /*
@@ -116,12 +117,13 @@ static int
 crfile_init(_CrFileObject *self, PyObject *args, G_GNUC_UNUSED PyObject *kwds)
 {
     char *path;
-    int mode, comtype;
+    int mode;
+    char *comtype;
     GError *err = NULL;
     PyObject *py_stat, *ret;
     cr_ContentStat *stat;
 
-    if (!PyArg_ParseTuple(args, "siiO|:crfile_init",
+    if (!PyArg_ParseTuple(args, "sisO|:crfile_init",
                           &path, &mode, &comtype, &py_stat))
         return -1;
 
@@ -132,7 +134,7 @@ crfile_init(_CrFileObject *self, PyObject *args, G_GNUC_UNUSED PyObject *kwds)
         return -1;
     }
 
-    if (comtype < 0 || comtype >= CR_CW_COMPRESSION_SENTINEL) {
+    if (!cr_valid_compression(comtype)) {
         PyErr_SetString(PyExc_ValueError, "Unknown compression type");
         return -1;
     }

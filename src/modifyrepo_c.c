@@ -145,8 +145,7 @@ check_arguments(RawCmdOptions *options, GError **err)
 
     // --compress-type
     if (options->compress_type
-        && cr_compression_type(options->compress_type) == \
-           CR_CW_UNKNOWN_COMPRESSION)
+        && !g_strcmp0(cr_compression_type(options->compress_type), CR_CW_UNKNOWN_COMPRESSION))
     {
         g_set_error(err, ERR_DOMAIN, CRE_ERROR,
                     "Unknown compression type \"%s\"", options->compress_type);
@@ -242,7 +241,7 @@ cmd_options_to_task(GSList **modifyrepotasks,
     *modifyrepotasks = g_slist_append(*modifyrepotasks, task);
 
     g_debug("Task: [path: %s, type: %s, remove: %d, compress: %d, "
-            "compress_type: %d (%s), unique_md_filenames: %d, "
+            "compress_type: %s (%s), unique_md_filenames: %d, "
             "checksum_type: %d (%s), new_name: %s]",
             task->path, task->type, task->remove, task->compress,
             task->compress_type, cr_compression_suffix(task->compress_type),

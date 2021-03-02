@@ -249,13 +249,13 @@ PyInit__createrepo_c(void)
     PyModule_AddIntConstant(m, "MODE_WRITE", CR_CW_MODE_WRITE);
 
     /* Compression types */
-    PyModule_AddIntConstant(m, "AUTO_DETECT_COMPRESSION", CR_CW_AUTO_DETECT_COMPRESSION);
-    PyModule_AddIntConstant(m, "UNKNOWN_COMPRESSION", CR_CW_UNKNOWN_COMPRESSION);
-    PyModule_AddIntConstant(m, "NO_COMPRESSION", CR_CW_NO_COMPRESSION);
-    PyModule_AddIntConstant(m, "GZ_COMPRESSION", CR_CW_GZ_COMPRESSION);
-    PyModule_AddIntConstant(m, "BZ2_COMPRESSION", CR_CW_BZ2_COMPRESSION);
-    PyModule_AddIntConstant(m, "XZ_COMPRESSION", CR_CW_XZ_COMPRESSION);
-    PyModule_AddIntConstant(m, "ZCK_COMPRESSION", CR_CW_ZCK_COMPRESSION);
+    PyModule_AddStringConstant(m, "AUTO_DETECT_COMPRESSION", CR_CW_AUTO_DETECT_COMPRESSION);
+    PyModule_AddStringConstant(m, "UNKNOWN_COMPRESSION",     CR_CW_UNKNOWN_COMPRESSION);
+    PyModule_AddStringConstant(m, "NO_COMPRESSION",          CR_CW_NO_COMPRESSION);
+    PyModule_AddStringConstant(m, "GZ_COMPRESSION",          CR_CW_GZ_COMPRESSION);
+    PyModule_AddStringConstant(m, "BZ2_COMPRESSION",         CR_CW_BZ2_COMPRESSION);
+    PyModule_AddStringConstant(m, "XZ_COMPRESSION",          CR_CW_XZ_COMPRESSION);
+    PyModule_AddStringConstant(m, "ZCK_COMPRESSION",         CR_CW_ZCK_COMPRESSION);
 
     /* Zchunk support */
 #ifdef WITH_ZCHUNK

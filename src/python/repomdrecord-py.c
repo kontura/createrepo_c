@@ -180,12 +180,13 @@ PyDoc_STRVAR(compress_and_fill__doc__,
 static PyObject *
 compress_and_fill(_RepomdRecordObject *self, PyObject *args)
 {
-    int checksum_type, compression_type;
+    int checksum_type;
+    char *compression_type;
     PyObject *compressed_repomdrecord;
     gchar *zck_dict_dir = NULL;
     GError *err = NULL;
 
-    if (!PyArg_ParseTuple(args, "O!ii|s:compress_and_fill",
+    if (!PyArg_ParseTuple(args, "O!is|s:compress_and_fill",
                           &RepomdRecord_Type,
                           &compressed_repomdrecord,
                           &checksum_type,

@@ -9,7 +9,7 @@ class TestCaseCompressionWrapper(unittest.TestCase):
         self.assertEqual(cr.compression_suffix(cr.AUTO_DETECT_COMPRESSION), None)
         self.assertEqual(cr.compression_suffix(cr.UNKNOWN_COMPRESSION), None)
         self.assertEqual(cr.compression_suffix(cr.NO_COMPRESSION), None)
-        self.assertEqual(cr.compression_suffix(123), None)
+        self.assertEqual(cr.compression_suffix("123"), None)
 
         self.assertEqual(cr.compression_suffix(cr.GZ), ".gz")
         self.assertEqual(cr.compression_suffix(cr.BZ2), ".bz2")

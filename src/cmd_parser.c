@@ -617,6 +617,7 @@ free_options(struct CmdOptions *options)
     g_free(options->pkglist);
     g_free(options->checksum);
     g_free(options->compress_type);
+    g_free(options->general_compress_type);
     g_free(options->groupfile);
     g_free(options->groupfile_fullpath);
     g_free(options->revision);

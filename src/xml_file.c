@@ -63,7 +63,7 @@ cr_xmlfile_sopen(const char *filename,
 
     assert(filename);
     assert(type < CR_XMLFILE_SENTINEL);
-    assert(comtype < CR_CW_COMPRESSION_SENTINEL);
+    assert(comtype);
     assert(!err || *err == NULL);
 
     if (g_file_test(filename, G_FILE_TEST_EXISTS)) {
@@ -391,7 +391,7 @@ cr_rewrite_header_package_count(gchar *original_filename,
     }
 
     // We want to keep identical zchunk chunk sizes, therefore we copy by chunk
-    if (xml_compression == CR_CW_ZCK_COMPRESSION) {
+    if (!g_strcmp0(xml_compression, CR_CW_ZCK_COMPRESSION)) {
         if (zck_dict_file){
             gchar *zck_dict = NULL;
             size_t zck_dict_size = 0;
