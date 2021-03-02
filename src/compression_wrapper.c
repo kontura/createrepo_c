@@ -159,6 +159,9 @@ cr_detect_compression(const char *filename, GError **err)
     } else if (g_str_has_suffix(filename, ".zck"))
     {
         return CR_CW_ZCK_COMPRESSION;
+    } else if (g_str_has_suffix(filename, ".zst"))
+    {
+        return "zstdio";
     } else if (g_str_has_suffix(filename, ".xml") ||
                g_str_has_suffix(filename, ".tar") ||
                g_str_has_suffix(filename, ".yaml") ||
@@ -211,6 +214,11 @@ cr_detect_compression(const char *filename, GError **err)
         else if (g_str_has_prefix(mime_type, "application/x-xz"))
         {
             type = CR_CW_XZ_COMPRESSION;
+        }
+
+        else if (g_str_has_prefix(mime_type, "application/zstd"))
+        {
+            type = "zstdio";
         }
 
         else if (g_str_has_prefix(mime_type, "text/plain") ||
@@ -324,6 +332,10 @@ cr_compression_suffix(cr_CompressionType comtype)
         g_str_has_suffix(comtype, "zckdio") ||
         g_str_has_suffix(comtype, "zck"))
         return ".zck";
+
+    if (g_str_has_suffix(comtype, "zstdio") ||
+        g_str_has_suffix(comtype, "zstd"))
+        return ".zst";
 
     return NULL;
 }
