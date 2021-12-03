@@ -1170,3 +1170,187 @@ class TestCaseXmlParserMainMetadataTogether(unittest.TestCase):
                           FILELISTS_MULTI_WARN_00_PATH,
                           OTHER_MULTI_WARN_00_PATH,
                           newpkgcb, None, warningcb)
+
+class TestCaseXmlParserPkgIterator(unittest.TestCase):
+    def test_xml_parser_pkg_iterator_repo01(self):
+        warnings = []
+
+        def warningcb(warn_type, msg):
+            warnings.append((warn_type, msg))
+
+        package_iterator = cr.PackageIterator(
+            primary_path=REPO_01_PRIXML, filelists_path=REPO_01_FILXML, other_path=REPO_01_OTHXML,
+            warningcb=warningcb,
+        )
+
+        pkg = next(package_iterator)
+
+        self.assertListEqual(warnings, [])
+        self.assertEqual(pkg.pkgId, "152824bff2aa6d54f429d43e87a3ff3a0286505c6d93ec87692b5e3a9e3b97bf")
+        self.assertEqual(pkg.name, "super_kernel")
+        self.assertEqual(pkg.arch, "x86_64")
+        self.assertEqual(pkg.version, "6.0.1")
+        self.assertEqual(pkg.epoch, "0")
+        self.assertEqual(pkg.release, "2")
+        self.assertEqual(pkg.summary, "Test package")
+        self.assertEqual(pkg.description, "This package has provides, requires, obsoletes, conflicts options.")
+        self.assertEqual(pkg.url, "http://so_super_kernel.com/it_is_awesome/yep_it_really_is")
+        self.assertEqual(pkg.time_file, 1334667003)
+        self.assertEqual(pkg.time_build, 1334667003)
+        self.assertEqual(pkg.rpm_license, "LGPLv2")
+        self.assertEqual(pkg.rpm_vendor, None)
+        self.assertEqual(pkg.rpm_group, "Applications/System")
+        self.assertEqual(pkg.rpm_buildhost, "localhost.localdomain")
+        self.assertEqual(pkg.rpm_sourcerpm, "super_kernel-6.0.1-2.src.rpm")
+        self.assertEqual(pkg.rpm_header_start, 280)
+        self.assertEqual(pkg.rpm_header_end, 2637)
+        self.assertEqual(pkg.rpm_packager, None)
+        self.assertEqual(pkg.size_package, 2845)
+        self.assertEqual(pkg.size_installed, 0)
+        self.assertEqual(pkg.size_archive, 404)
+        self.assertEqual(pkg.location_href, "super_kernel-6.0.1-2.x86_64.rpm")
+        self.assertEqual(pkg.location_base, None)
+        self.assertEqual(pkg.checksum_type, "sha256")
+        self.assertEqual(pkg.requires,
+                [('bzip2', 'GE', '0', '1.0.0', None, True),
+                 ('expat', None, None, None, None, True),
+                 ('glib', 'GE', '0', '2.26.0', None, False),
+                 ('zlib', None, None, None, None, False)])
+        self.assertEqual(pkg.provides,
+                [('not_so_super_kernel', 'LT', '0', '5.8.0', None, False),
+                 ('super_kernel', 'EQ', '0', '6.0.0', None, False),
+                 ('super_kernel', 'EQ', '0', '6.0.1', '2', False),
+                 ('super_kernel(x86-64)', 'EQ', '0', '6.0.1', '2', False)])
+        self.assertEqual(pkg.conflicts,
+                [('kernel', None, None, None, None, False),
+                 ('super_kernel', 'EQ', '0', '5.0.0', None, False),
+                 ('super_kernel', 'LT', '0', '4.0.0', None, False)])
+        self.assertEqual(pkg.obsoletes,
+                [('kernel', None, None, None, None, False),
+                 ('super_kernel', 'EQ', '0', '5.9.0', None, False)])
+        self.assertEqual(pkg.files,
+                [(None, '/usr/bin/', 'super_kernel'),
+                 (None, '/usr/share/man/', 'super_kernel.8.gz')])
+        self.assertEqual(pkg.changelogs,
+                [('Tomas Mlcoch <tmlcoch@redhat.com> - 6.0.1-1',
+                   1334664000,
+                  '- First release'),
+                 ('Tomas Mlcoch <tmlcoch@redhat.com> - 6.0.1-2',
+                   1334664001,
+                   '- Second release')])
+
+        self.assertIsNone(next(package_iterator))
+        self.assertTrue(package_iterator.is_finished())
+
+    def test_xml_parser_pkg_iterator_repo02(self):
+        warnings = []
+        def warningcb(warn_type, msg):
+            warnings.append((warn_type, msg))
+
+        package_iterator = cr.PackageIterator(
+            primary_path=REPO_02_PRIXML, filelists_path=REPO_02_FILXML, other_path=REPO_02_OTHXML,
+            warningcb=warningcb,
+        )
+
+        package_names = ['fake_bash', 'super_kernel']
+        for (pkg, name) in zip(package_iterator, package_names):
+            self.assertEqual(pkg.name, name)
+            # TODO: might be good to test that iter.is_finished() returns false while still processing packages
+
+        self.assertListEqual(warnings, [])
+        self.assertIsNone(next(package_iterator))
+        self.assertTrue(package_iterator.is_finished())
+
+    def test_xml_parser_pkg_iterator_repo02_newpkgcb_as_filter(self):
+        def newpkgcb(pkgId, name, arch):
+            if name in {"fake_bash"}:
+                return cr.Package()
+
+        package_iterator = cr.PackageIterator(
+            primary_path=REPO_02_PRIXML, filelists_path=REPO_02_FILXML, other_path=REPO_02_OTHXML,
+            newpkgcb=newpkgcb,
+        )
+
+        packages = list(package_iterator)
+
+        self.assertEqual(len(packages), 1)
+        self.assertEqual(packages[0].name, "fake_bash")
+        self.assertIsNone(next(package_iterator))
+        self.assertTrue(package_iterator.is_finished())
+
+    def test_xml_parser_pkg_iterator_warnings(self):
+        warnings = []
+        def warningcb(warn_type, msg):
+            warnings.append((warn_type, msg))
+
+        package_iterator = cr.PackageIterator(
+            primary_path=PRIMARY_MULTI_WARN_00_PATH, filelists_path=FILELISTS_MULTI_WARN_00_PATH, other_path=OTHER_MULTI_WARN_00_PATH,
+            warningcb=warningcb,
+        )
+
+        package_names = ['fake_bash', 'super_kernel']
+        for (pkg, name) in zip(package_iterator, package_names):
+            self.assertEqual(pkg.name, name)
+            # TODO: might be good to test that iter.is_finished() returns false while still processing packages
+
+        self.assertListEqual(warnings, [])
+        self.assertIsNone(next(package_iterator))
+        self.assertTrue(package_iterator.is_finished())
+
+        self.assertEqual(warnings,
+            [(0, 'Unknown element "fooelement"'),
+             (1, 'Missing attribute "type" of a package element'),
+             (0, 'Unknown element "foo"'),
+             (3, 'Conversion of "foobar" to integer failed'),
+             (0, 'Unknown element "bar"'),
+             (1, 'Missing attribute "arch" of a package element'),
+             (2, 'Unknown file type "xxx"'),
+             (0, 'Unknown element "bar"'),
+             (1, 'Missing attribute "name" of a package element'),
+             (0, 'Unknown element "bar"'),
+             (3, 'Conversion of "xxx" to integer failed')])
+
+
+    def test_xml_parser_package_iterator_error(self):
+
+        package_iterator = cr.PackageIterator(
+            primary_path=PRIMARY_ERROR_00_PATH, filelists_path=FILELISTS_ERROR_00_PATH, other_path=OTHER_ERROR_00_PATH,
+        )
+
+        with self.assertRaises(cr.CreaterepoCError) as ctx:
+            packages = list(package_iterator)
+
+        self.assertIsNone(next(package_iterator))
+        self.assertTrue(package_iterator.is_finished())
+
+
+    def test_xml_parser_pkg_iterator_newpkgcb_abort(self):
+        def newpkgcb(pkgId, name, arch):
+            raise Error("Foo error")
+
+        package_iterator = cr.PackageIterator(
+            primary_path=REPO_02_PRIXML, filelists_path=REPO_02_FILXML, other_path=REPO_02_OTHXML,
+            newpkgcb=newpkgcb,
+        )
+
+        with self.assertRaises(cr.CreaterepoCError) as ctx:
+            packages = list(package_iterator)
+
+        self.assertIsNone(next(package_iterator))
+        self.assertTrue(package_iterator.is_finished())
+
+
+    def test_xml_parser_pkg_iterator_warningcb_abort(self):
+        def warningcb(type, msg):
+            raise Error("Foo error")
+
+        package_iterator = cr.PackageIterator(
+            primary_path=PRIMARY_MULTI_WARN_00_PATH, filelists_path=FILELISTS_MULTI_WARN_00_PATH, other_path=OTHER_MULTI_WARN_00_PATH,
+            warningcb=warningcb,
+        )
+
+        with self.assertRaises(cr.CreaterepoCError) as ctx:
+            packages = list(package_iterator)
+
+        self.assertIsNone(next(package_iterator))
+        self.assertTrue(package_iterator.is_finished())
