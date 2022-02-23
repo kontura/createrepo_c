@@ -1239,7 +1239,7 @@ class TestCaseXmlParserPkgIterator(unittest.TestCase):
                    1334664001,
                    '- Second release')])
 
-        self.assertIsNone(next(package_iterator))
+        self.assertRaises(StopIteration, next, package_iterator)
         self.assertTrue(package_iterator.is_finished())
 
     def test_xml_parser_pkg_iterator_repo02(self):
@@ -1258,7 +1258,7 @@ class TestCaseXmlParserPkgIterator(unittest.TestCase):
             # TODO: might be good to test that iter.is_finished() returns false while still processing packages
 
         self.assertListEqual(warnings, [])
-        self.assertIsNone(next(package_iterator))
+        self.assertRaises(StopIteration, next, package_iterator)
         self.assertTrue(package_iterator.is_finished())
 
     def test_xml_parser_pkg_iterator_repo02_newpkgcb_as_filter(self):
@@ -1275,7 +1275,7 @@ class TestCaseXmlParserPkgIterator(unittest.TestCase):
 
         self.assertEqual(len(packages), 1)
         self.assertEqual(packages[0].name, "fake_bash")
-        self.assertIsNone(next(package_iterator))
+        self.assertRaises(StopIteration, next, package_iterator)
         self.assertTrue(package_iterator.is_finished())
 
     def test_xml_parser_pkg_iterator_warnings(self):
@@ -1293,8 +1293,7 @@ class TestCaseXmlParserPkgIterator(unittest.TestCase):
             self.assertEqual(pkg.name, name)
             # TODO: might be good to test that iter.is_finished() returns false while still processing packages
 
-        self.assertListEqual(warnings, [])
-        self.assertIsNone(next(package_iterator))
+        self.assertRaises(StopIteration, next, package_iterator)
         self.assertTrue(package_iterator.is_finished())
 
         self.assertEqual(warnings,
@@ -1320,9 +1319,6 @@ class TestCaseXmlParserPkgIterator(unittest.TestCase):
         with self.assertRaises(cr.CreaterepoCError) as ctx:
             packages = list(package_iterator)
 
-        self.assertIsNone(next(package_iterator))
-        self.assertTrue(package_iterator.is_finished())
-
 
     def test_xml_parser_pkg_iterator_newpkgcb_abort(self):
         def newpkgcb(pkgId, name, arch):
@@ -1335,9 +1331,6 @@ class TestCaseXmlParserPkgIterator(unittest.TestCase):
 
         with self.assertRaises(cr.CreaterepoCError) as ctx:
             packages = list(package_iterator)
-
-        self.assertIsNone(next(package_iterator))
-        self.assertTrue(package_iterator.is_finished())
 
 
     def test_xml_parser_pkg_iterator_warningcb_abort(self):
@@ -1352,5 +1345,3 @@ class TestCaseXmlParserPkgIterator(unittest.TestCase):
         with self.assertRaises(cr.CreaterepoCError) as ctx:
             packages = list(package_iterator)
 
-        self.assertIsNone(next(package_iterator))
-        self.assertTrue(package_iterator.is_finished())
