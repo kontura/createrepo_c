@@ -253,6 +253,38 @@ def third_method():
                                         pkgcb,
                                         warningcb)
 
+def fourth_method():
+    def warningcb(warning_type, message):
+        print("PARSER WARNING: %s" % message)
+        return True
+
+    repomd = cr.Repomd()
+    cr.xml_parse_repomd(os.path.join(REPO_PATH, "repodata/repomd.xml"), repomd, warningcb)
+
+    primary_xml_path   = None
+    filelists_xml_path = None
+    other_xml_path     = None
+    for record in repomd.records:
+        if record.type == "primary":
+            primary_xml_path = os.path.join(REPO_PATH, record.location_href)
+        elif record.type == "filelists":
+            filelists_xml_path = os.path.join(REPO_PATH, record.location_href)
+        elif record.type == "other":
+            other_xml_path = os.path.join(REPO_PATH, record.location_href)
+
+    #
+    # Main XML metadata parsing (primary, filelists, other)
+    #
+    package_iterator = cr.PackageIterator(primary_path=primary_xml_path,
+                                          filelists_path=filelists_xml_path,
+                                          other_path=other_xml_path,
+                                          warningcb=warningcb)
+
+    for pkg in package_iterator:
+        # Called when whole package entry from all 3 metadata xml files is parsed
+        print_package_info(pkg)
+
+
 if __name__ == "__main__":
     print('"All in one shot" method:')
     first_method()
@@ -266,3 +298,8 @@ if __name__ == "__main__":
 
     print("Streaming callback based method:")
     third_method()
+
+    print()
+
+    print("Streaming iterator based method:")
+    fourth_method()
