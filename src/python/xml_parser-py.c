@@ -794,6 +794,7 @@ py_xml_parse_main_metadata_together(G_GNUC_UNUSED PyObject *self, PyObject *args
 typedef struct {
     PyObject_HEAD
     cr_PkgIterator *pkg_iterator;
+    CbData *cbdata;
 } _PkgIteratorObject;
 
 cr_PkgIterator *
@@ -841,6 +842,7 @@ pkg_iterator_new(PyTypeObject *type,
     _PkgIteratorObject *self = (_PkgIteratorObject *)type->tp_alloc(type, 0);
     if (self) {
         self->pkg_iterator = NULL;
+        self->cbdata = malloc(sizeof(CbData));
     }
     return (PyObject *)self;
 }
@@ -857,7 +859,6 @@ pkg_iterator_init(_PkgIteratorObject *self, PyObject *args, PyObject *kwargs)
     char *filelists_path;
     char *other_path;
     PyObject *py_newpkgcb, *py_warningcb;
-    CbData cbdata;
     GError *tmp_err = NULL;
     static char *kwlist[] = {"primary", "filelists", "other", "newpkgcb",
                              "warningcb", NULL};
@@ -888,7 +889,6 @@ pkg_iterator_init(_PkgIteratorObject *self, PyObject *args, PyObject *kwargs)
 
     Py_XINCREF(py_newpkgcb);
     Py_XINCREF(py_warningcb);
-    Py_XINCREF(cbdata.py_pkgs);
 
     cr_XmlParserNewPkgCb ptr_c_newpkgcb = NULL;
     cr_XmlParserWarningCb ptr_c_warningcb = NULL;
@@ -898,13 +898,13 @@ pkg_iterator_init(_PkgIteratorObject *self, PyObject *args, PyObject *kwargs)
     if (py_warningcb != Py_None)
         ptr_c_warningcb = c_warningcb;
 
-    cbdata.py_newpkgcb = py_newpkgcb;
-    cbdata.py_pkgcb = NULL;  // TODO: What should go here?
-    cbdata.py_warningcb = py_warningcb;
-    cbdata.py_pkgs = PyDict_New();
+    self->cbdata->py_newpkgcb = py_newpkgcb;
+    self->cbdata->py_pkgcb = NULL;  // TODO: What should go here?
+    self->cbdata->py_warningcb = py_warningcb;
+    self->cbdata->py_pkgs = PyDict_New();
 
     self->pkg_iterator = cr_PkgIterator_new(
-        primary_path, filelists_path, other_path, ptr_c_newpkgcb, &cbdata, ptr_c_warningcb, &cbdata, &tmp_err);
+        primary_path, filelists_path, other_path, ptr_c_newpkgcb, self->cbdata, ptr_c_warningcb, self->cbdata, &tmp_err);
 
     // TODO: correct?
     if (tmp_err) {
@@ -917,9 +917,6 @@ pkg_iterator_init(_PkgIteratorObject *self, PyObject *args, PyObject *kwargs)
         return -1;
     }
 
-    Py_XDECREF(py_newpkgcb);
-    Py_XDECREF(py_warningcb);
-    Py_XDECREF(cbdata.py_pkgs);
 
     return 0;
 }
@@ -928,8 +925,17 @@ static void
 pkg_iterator_dealloc(_PkgIteratorObject *self)
 {
     GError *tmp_err;
-    if (self->pkg_iterator)
+    if (self->pkg_iterator) {
         cr_PkgIterator_free(self->pkg_iterator, &tmp_err);
+    }
+    if (self->cbdata) {
+        Py_XDECREF(self->cbdata->py_newpkgcb);
+        Py_XDECREF(self->cbdata->py_warningcb);
+        Py_XDECREF(self->cbdata->py_pkgs);
+
+        free(self->cbdata);
+    }
+
     Py_TYPE(self)->tp_free(self);
     // TODO: do something with error?
 }
@@ -987,7 +993,21 @@ pkg_iterator_next_package(_PkgIteratorObject *self, G_GNUC_UNUSED void *nothing)
         return NULL;
     }
 
-    return Object_FromPackage(pkg, 1);
+    PyObject *keyFromPtr = PyLong_FromVoidPtr(pkg);
+    PyObject *py_pkg = PyDict_GetItem(self->cbdata->py_pkgs, keyFromPtr);
+    if (py_pkg) {
+        // Remove pkg from PyDict but keep one reference so its not freed if the
+        // user doesn't have any references to the package
+        Py_XINCREF(py_pkg);
+        PyDict_DelItem(self->cbdata->py_pkgs, keyFromPtr);
+    } else {
+        // The package was not provided by user in c_newpkgcb,
+        // create new python package object
+        py_pkg = Object_FromPackage(pkg, 1);
+    }
+    Py_DECREF(keyFromPtr);
+    return py_pkg;
+
 }
 
 static PyObject *
