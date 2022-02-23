@@ -335,7 +335,7 @@ int cr_xml_parse_main_metadata_together(const char *primary_path,
         primary_path, filelists_path, other_path, newpkgcb, newpkgcb_data, warningcb, warningcb_data, err
     );
 
-    assert(pkg_iterator);
+//   assert(pkg_iterator);
     if (*err) {
         return (*err)->code;
     }
@@ -362,12 +362,14 @@ int cr_xml_parse_main_metadata_together(const char *primary_path,
                 assert(tmp_err == NULL);
             }
         } else {
-            // Free the package if there is no external callback to do so.
-            cr_package_free(package);
+            // Free the package if there is no external callback to do so and we have no newpkgcb
+            if (!newpkgcb) {
+                cr_package_free(package);
+            }
         }
     }
 
-    assert(cr_PkgIterator_is_finished(pkg_iterator));
+//    assert(cr_PkgIterator_is_finished(pkg_iterator));
     cr_PkgIterator_free(pkg_iterator, err);
 
     if (*err) {
@@ -543,10 +545,13 @@ void cr_PkgIterator_free(cr_PkgIterator *iter, GError **err) {
     cr_xml_parser_data_free(iter->filelists_pd);
     cr_xml_parser_data_free(iter->other_pd);
 
+
     if (cbdata->newpkgcb) {
         g_slist_free(cbdata->in_progress_pkgs_list);
+        g_queue_free(cbdata->finished_pkgs_queue);
     } else {
         g_slist_free_full(cbdata->in_progress_pkgs_list, (GDestroyNotify) cr_package_free);
+        g_queue_free_full(cbdata->finished_pkgs_queue, (GDestroyNotify) cr_package_free);
     }
 
     g_free(cbdata);
