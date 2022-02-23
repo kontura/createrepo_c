@@ -51,6 +51,33 @@ pkgcb_interrupt(cr_Package *pkg, void *cbdata, GError **err)
 }
 
 static int
+newpkgcb(cr_Package **pkg,
+         G_GNUC_UNUSED const char *pkgId,
+         const char *name,
+         G_GNUC_UNUSED const char *arch,
+         G_GNUC_UNUSED void *cbdata,
+         GError **err)
+{
+    g_assert(pkg != NULL);
+    g_assert(*pkg == NULL);
+    g_assert(pkgId != NULL);
+    g_assert(!err || *err == NULL);
+
+    *pkg = cr_package_new();
+    cr_Package **list;
+
+    if (cbdata) {
+        cr_Package **pkgl = cbdata;
+        for (; *pkgl; pkgl++) {
+            continue;
+        }
+        *pkgl = *pkg;
+    }
+
+    return CR_CB_RET_OK;
+}
+
+static int
 newpkgcb_skip_fake_bash(cr_Package **pkg,
                         G_GNUC_UNUSED const char *pkgId,
                         const char *name,
@@ -243,6 +270,27 @@ test_cr_xml_parse_main_metadata_together_07_warningcb_interrupt(void)
 }
 
 static void
+test_cr_xml_parse_main_metadata_together_071_multiple_warningcb(void)
+{
+    char *warnmsgs;
+    GString *warn_strings = g_string_new(0);
+    cr_Package *list_of_pkgs[2] = {NULL, NULL};
+    GError *tmp_err = NULL;
+    int ret = cr_xml_parse_main_metadata_together(TEST_PRIMARY_MULTI_WARN_00, TEST_FILELISTS_MULTI_WARN_00, TEST_OTHER_MULTI_WARN_00,
+                                                  newpkgcb, &list_of_pkgs, NULL, NULL, warningcb, warn_strings, &tmp_err);
+    g_assert(tmp_err == NULL);
+    g_assert(list_of_pkgs[0] != NULL);
+    g_assert(list_of_pkgs[1] != NULL);
+    cr_package_free(list_of_pkgs[0]);
+    cr_package_free(list_of_pkgs[1]);
+    g_assert_cmpint(ret, ==, CRE_OK);
+    warnmsgs = g_string_free(warn_strings, FALSE);
+    g_assert_cmpstr(warnmsgs, ==, "Unknown element \"fooelement\";Missing attribute \"type\" of a package element;Unknown element \"foo\";Conversion of \"foobar\" to integer failed;Unknown element \"bar\";Missing attribute \"arch\" of a package element;Unknown file type \"xxx\";Unknown element \"bar\";Missing attribute \"name\" of a package element;Unknown element \"bar\";Conversion of \"xxx\" to integer failed;");
+    g_free(warnmsgs);
+}
+
+
+static void
 test_cr_xml_parse_main_metadata_together_08_long_primary(void)
 {
     int parsed = 0;
@@ -355,6 +403,9 @@ main(int argc, char *argv[])
 
     g_test_add_func("/xml_parser_main_metadata/test_cr_xml_parse_main_metadata_together_08_long_primary",
                     test_cr_xml_parse_main_metadata_together_08_long_primary);
+
+    g_test_add_func("/xml_parser_main_metadata/test_cr_xml_parse_main_metadata_together_071_multiple_warningcb",
+                    test_cr_xml_parse_main_metadata_together_071_multiple_warningcb);
 
     g_test_add_func("/xml_parser_main_metadata/test_cr_xml_package_iterator_00",
                     test_cr_xml_package_iterator_00);
