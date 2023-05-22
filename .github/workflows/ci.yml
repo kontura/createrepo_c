@@ -14,7 +14,7 @@ jobs:
       - name: Check out ci-dnf-stack
         uses: actions/checkout@v2
         with:
-          repository: rpm-software-management/ci-dnf-stack
+          repository: kontura/ci-dnf-stack
 
       - name: Setup CI
         id: setup-ci
@@ -42,13 +42,13 @@ jobs:
     needs: copr-build
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/rpm-software-management/dnf-ci-host
+      image: ghcr.io/kontura/dnf-ci-host
       options: --privileged
     steps:
       - name: Check out ci-dnf-stack
         uses: actions/checkout@v2
         with:
-          repository: rpm-software-management/ci-dnf-stack
+          repository: kontura/ci-dnf-stack
 
       - name: Run Integration Tests
         uses: ./.github/actions/integration-tests
