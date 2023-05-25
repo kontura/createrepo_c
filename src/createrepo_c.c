@@ -59,6 +59,8 @@
 #define OUTDELTADIR "drpms/"
 #define DEFAULT_DATABASE_VERSION    10
 
+// test 22
+
 /*
  * Starting with glib 2.70.0, g_pattern_spec_match() replaces
  * g_pattern_match().
