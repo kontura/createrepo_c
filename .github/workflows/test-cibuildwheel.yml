@@ -1,0 +1,50 @@
+  name: Test cibuildwheel (manual)
+  on:
+    workflow_dispatch:
+  jobs:
+    build_sdist:
+      name: Build source packages
+      runs-on: ubuntu-latest
+      container: fedora:latest
+      steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo dnf -y install dnf-plugins-core
+          sudo dnf -y builddep createrepo_c.spec
+          sudo dnf -y install twine pytest
+          pip install --upgrade pip
+          pip install build scikit-build-core
+
+      - name: Build Python sdist
+        run: python3 -m build --sdist
+
+      - name: Install and Test Python source package
+        run: |
+          pip install dist/*.tar.gz
+          pytest --verbose --color=yes tests/python/tests/
+    build_bdist:
+      name: Build binary wheels
+      strategy:
+        matrix:
+          include:
+            - os: ubuntu-24.04
+              arch: x86_64
+            - os: ubuntu-24.04-arm
+              arch: aarch64
+      runs-on: ${{ matrix.os }}
+      steps:
+        - uses: actions/checkout@v6
+        - name: Set up Python
+          uses: actions/setup-python@v6
+          with:
+            python-version: '3.x'
+        - name: Check Podman availability
+          run: |
+            which podman
+            podman --version
+            podman info
+        - name: Build wheels for CPython
+          uses: pypa/cibuildwheel@v3.4.1
+
